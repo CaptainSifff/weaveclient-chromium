@@ -2,13 +2,27 @@ Firefox Sync for Chromium
 =======================
 
 This is an EXPERIMENTAL extension for the Google Chrome browser
-(a.k.a. Chromium).  It allows one to synchronize bookmarks and tabs
+(a.k.a. Chromium).  It allows one to synchronize bookmarks(someday) and tabs
 with the Firefox Sync service.
 
 Right now this extension is far from feature complete but it can talk to the
 sync server and read and write data.
 
 Development is ongoing.
+
+I'm currently testing this with chromium 35, firefox 24.6 and firefox 30 against
+an owncloud server running mozilla_sync 1.4
+
+Features
+
+		Chrome Read		Chrome Write		Firefox Read
+TABS		   +			   +			   +
+
+HISTORY		   -			   -			   ?
+
+BOOKMARKS	   -			   -			   ?
+
+PASSWORDS   -------No intention ----------
 
 
 Credits
