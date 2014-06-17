@@ -217,6 +217,87 @@ Weave.Chromium.Tabs = {
     }
 };
 
+Weave.Chromium.History = {
+
+    collection: "history",
+    wbos: null,
+    lastSync: null, //TODO
+
+    init: function () {
+        if (localStorage[this.collection]) {
+            this.wbos = JSON.parse(localStorage[this.collection]);
+            return;
+        }
+
+        this.wbos = {};
+        this.save();
+    },
+
+    save: function () {
+        localStorage[this.collection] = JSON.stringify(this.wbos);
+    },
+
+    sync: function (callback) {
+        var self = this;
+	//tries to get full history. Might be a bit much...
+        Weave.Client.loadCollectionDecrypt(self.collection, {full: 1}, function (datain) {
+            self.syncWBOs(datain, function (dataout) {
+	      console.log("outputting history:", dataout[0]);
+                Weave.Client.encryptPostCollection(self.collection, dataout,
+                                                   function (status) {
+                    //TODO examine status.success, status.failed
+                    callback();
+                });
+            });
+        });
+    },
+
+
+    // Receives new WBOs, returns a list of WBOs to be updated (via callback).
+    //syncWBOs seems to be the only part that needs new functionality
+    syncWBOs: function (data, callback) {
+        var self = this;
+
+        // With tabs it's easy.  We just replace whatever we have
+        // locally with the new stuff.
+        data.forEach(function (wbo) {
+            self.wbos[wbo.id] = wbo;
+        });
+
+        // The outgoing data simply is one WBO containing a list of
+        // all tabs in all windows.
+        chrome.windows.getAll({populate:true}, function (windows) {
+            var tab;
+            var weaveTabs = [];
+            for (var i=0; i < windows.length; i++) {
+                for (var j=0; j < windows[i].tabs.length; j++) {
+                    tab = windows[i].tabs[j];
+                    if (tab.url.substr(0, 4) !== "http") {
+                        continue;
+                    }
+                    weaveTabs.push({icon: tab.favIconUrl,
+                                    lastUsed: Date.now(), //XXX a lie
+                                    title: tab.title,
+                                    urlHistory: [tab.url]});
+                }
+            }
+            console.log("Number of tabs:", weaveTabs.length);
+            console.log("Tabs.syncWBO");
+            console.log(weaveTabs);
+
+            // Assemble WBO
+            var options = Weave.Chromium.options;
+            var wbo = {id: options.client.id,
+                       clientName: options.client.name,
+                       tabs: weaveTabs};
+            self.wbos[wbo.id] = wbo;
+            self.save();
+
+            callback([wbo]);
+        });
+    }
+};
+
 
 Weave.Chromium.Bookmarks = {
 
