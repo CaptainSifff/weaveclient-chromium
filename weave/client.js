@@ -283,7 +283,7 @@ Weave.Client = (function () {
                 Weave.Util.Base64.decode(payload.ciphertext)
             );
 
-            var data = JSON.parse(UTF8.decode(data));
+	    var data = JSON.parse(decodeURIComponent(escape(data)))
             for (var key in data) {
                 wbo[key] = data[key];
             }
@@ -298,7 +298,19 @@ Weave.Client = (function () {
         var keyUri = secure.storageUrl + "/1.0/" + hashUserName(secure.user) +
                      "/storage/crypto/keys";
         //TODO check that object_fields[collection] exists
-        var cleartext = UTF8.encode(JSON.stringify(wbo, object_fields[collection]));
+	var cleartext;
+	switch(collection)//anticipating more statements...
+	{ 
+	  case "tabs"://somehow the JSON string got messed up. Therefore we build it ourselves
+	    cleartext = "{\"id\":\""+wbo['id']+"\", \"clientName\": \""+wbo['clientName']+"\", \"tabs\":";
+	    cleartext += JSON.stringify(wbo['tabs']);
+	    cleartext += "}";
+	    cleartext = unescape(encodeURIComponent(cleartext));//Encoding to UTF8
+	    break;
+	  default:
+	    cleartext = unescape(encodeURIComponent(JSON.stringify(wbo, object_fields[collection]));
+	    break;
+	}
         getBulkKey(collection, function (keypair) {
             var enc_key = keypair[0];
             var hmac_key = keypair[1];
