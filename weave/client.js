@@ -308,7 +308,7 @@ Weave.Client = (function () {
 	    cleartext = unescape(encodeURIComponent(cleartext));//Encoding to UTF8
 	    break;
 	  default:
-	    cleartext = unescape(encodeURIComponent(JSON.stringify(wbo, object_fields[collection]));
+	    cleartext = unescape(encodeURIComponent(JSON.stringify(wbo, object_fields[collection])));
 	    break;
 	}
         getBulkKey(collection, function (keypair) {
