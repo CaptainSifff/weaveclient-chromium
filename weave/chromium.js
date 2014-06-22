@@ -44,6 +44,7 @@ Weave.Chromium = {
     init: function () {
         Weave.Chromium.Tabs.init();
         Weave.Chromium.Bookmarks.init();
+	Weave.Chromium.History.init();
         if (localStorage.options) {
             this.options = JSON.parse(localStorage.options);
             return;
@@ -69,6 +70,7 @@ Weave.Chromium = {
     clearCache: function () {
         delete localStorage['bookmarks'];
         delete localStorage['tabs'];
+	delete localStorage['history'];
         delete localStorage['bookmark.folders'];
         delete localStorage['bookmark.chromeIDs'];
         this.init();
@@ -125,7 +127,8 @@ Weave.Chromium = {
         }
 
         //TODO these should be running after each other, not in parallel
-        Weave.Chromium.Tabs.sync(areWeDoneYet);
+//        Weave.Chromium.Tabs.sync(areWeDoneYet);
+	Weave.Chromium.History.sync(areWeDoneYet);
 //        Weave.Chromium.Bookmarks.sync(areWeDoneYet);
         this.updateLastSync();
     },
@@ -271,8 +274,11 @@ Weave.Chromium.History = {
 	// the full history
 	chrome.history.search ({text:""}, function (results)
 	{
-	  for (i in results)
-	    console.log(i);
+	  for (var i = 0; i < results.length; ++i)
+	  {
+	    var item = results[i];
+	    console.log(item);
+	  }
 	}
 	  
 	);
