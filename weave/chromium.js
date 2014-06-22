@@ -239,7 +239,7 @@ Weave.Chromium.History = {
 
     sync: function (callback) {
         var self = this;
-	//tries to get full history. Might be a bit much...
+	//tries to get full remote history. Might be a bit much...
         Weave.Client.loadCollectionDecrypt(self.collection, {full: 1}, function (datain) {
             self.syncWBOs(datain, function (dataout) {
 	      console.log("outputting history:", dataout[0]);
@@ -255,6 +255,9 @@ Weave.Chromium.History = {
 
     // Receives new WBOs, returns a list of WBOs to be updated (via callback).
     //syncWBOs seems to be the only part that needs new functionality
+    /**
+     * @param data the incoming data FROM the sync server
+     */
     syncWBOs: function (data, callback) {
         var self = this;
 
@@ -264,37 +267,15 @@ Weave.Chromium.History = {
             self.wbos[wbo.id] = wbo;
         });
 
-        // The outgoing data simply is one WBO containing a list of
-        // all tabs in all windows.
-        chrome.windows.getAll({populate:true}, function (windows) {
-            var tab;
-            var weaveTabs = [];
-            for (var i=0; i < windows.length; i++) {
-                for (var j=0; j < windows[i].tabs.length; j++) {
-                    tab = windows[i].tabs[j];
-                    if (tab.url.substr(0, 4) !== "http") {
-                        continue;
-                    }
-                    weaveTabs.push({icon: tab.favIconUrl,
-                                    lastUsed: Date.now(), //XXX a lie
-                                    title: tab.title,
-                                    urlHistory: [tab.url]});
-                }
-            }
-            console.log("Number of tabs:", weaveTabs.length);
-            console.log("Tabs.syncWBO");
-            console.log(weaveTabs);
-
-            // Assemble WBO
-            var options = Weave.Chromium.options;
-            var wbo = {id: options.client.id,
-                       clientName: options.client.name,
-                       tabs: weaveTabs};
-            self.wbos[wbo.id] = wbo;
-            self.save();
-
-            callback([wbo]);
-        });
+        // First Guess: The outgoing data simply is one WBO containing 
+	// the full history
+	chrome.history.search ({text:""}, function (results)
+	{
+	  for (i in results)
+	    console.log(i);
+	}
+	  
+	);
     }
 };
 
