@@ -75,9 +75,12 @@ Weave.Client = (function () {
 
     // A list of allowed object fields for each collection.
     // See https://wiki.mozilla.org/Labs/Weave/Developer/BrowserObjects
+//Don't forget visits object: It has the structure visits: Array of {
+//"date", "type"}
     var object_fields = {
         "clients": ["id", "name", "type", "commands"],
         "tabs": ["id", "clientName", "tabs"],
+	"history": ["id", "title", "histUri", "visits"],
         "bookmarks": ["id", "title", "bmkUri", "description", "loadInSidebar",
                       "tags", "keyword", "parentName", "predecessorid", "type"]
     };
