@@ -220,6 +220,22 @@ Weave.Chromium.Tabs = {
     }
 };
 
+function getIntersect(arr1, arr2) {
+  //from here:http://www.falsepositives.com/index.php/2009/12/01/javascript-function-to-get-the-intersect-of-2-arrays/
+    var r = [], o = {}, l = arr2.length, i, v;
+    for (i = 0; i < l; i++) {
+        o[arr2[i]] = true;
+    }
+    l = arr1.length;
+    for (i = 0; i < l; i++) {
+        v = arr1[i];
+        if (v in o) {
+            r.push(v);
+        }
+    }
+    return r;
+}
+
 Weave.Chromium.History = {
 
     collection: "history",
@@ -245,7 +261,7 @@ Weave.Chromium.History = {
 	//tries to get full remote history. Might be a bit much...
         Weave.Client.loadCollectionDecrypt(self.collection, {full: 1}, function (datain) {
             self.syncWBOs(datain, function (dataout) {
-	      console.log("outputting history:", dataout[0]);
+	      console.log("outputting history sent to server:", dataout[0]);
                 Weave.Client.encryptPostCollection(self.collection, dataout,
                                                    function (status) {
                     //TODO examine status.success, status.failed
@@ -263,7 +279,10 @@ Weave.Chromium.History = {
      */
     syncWBOs: function (data, callback) {
         var self = this;
-
+//data right now is the full complete history stored on the server.
+//	console.log(data);
+	
+	
         // With tabs it's easy.  We just replace whatever we have
         // locally with the new stuff.
         data.forEach(function (wbo) {
@@ -272,13 +291,50 @@ Weave.Chromium.History = {
 
         // First Guess: The outgoing data simply is one WBO containing 
 	// the full history
-	chrome.history.search ({text:""}, function (results)
+	chrome.history.search ({'text': '',
+            'maxResults': 1000000000,
+            'startTime': 0}, 
+	    function (chromiumhisto)
 	{
-	  for (var i = 0; i < results.length; ++i)
+	  //Let's find out which elements are duplicate in a simple O(N^2) manner
+	  //chromiumhisto stems from chromium and data stems from weave
+	  var missinginweave = [];
+	  var intersectweave = [];
+	  var intersectchromium = [];//two arrays since their internal representation is different
+	  for (var i = 0; i < chromiumhisto.length; ++i)
 	  {
-	    var item = results[i];
-	    console.log(item);
+	    var found = false;
+	    for(var j = 0; (j < data.length) && !found; ++j)
+	    {
+	      if(chromiumhisto[i].url === data[j].histUri)
+	      {
+		found = true;
+		intersectchromium.push(chromiumhisto[i]);
+		intersectweave.push(data[j]);
+	      }
+	    }
 	  }
+	  var missinginweave = chromiumhisto.filter(
+	    function(element, index, array)
+	    {
+	      return intersectchromium.indexOf(element) == -1;
+	    });
+	  var missinginchrome = data.filter(
+	    function(element, index, array)
+	    {
+	      return intersectweave.indexOf(element) == -1;
+	    });
+	  
+	  console.log(intersectweave);
+	  console.log(intersectchromium);
+	  //Now we merge stuff from weave that we miss in chromium
+	  //since we only have chrome.history.addurl which adds an url at the current time...
+/*works	  missinginchrome.forEach(function(element, index, array)
+	  {
+	   chrome.history.addUrl({url: element.histUri}); 
+	  }*/
+	  //Now we need to prepare data for weave
+	  )
 	}
 	  
 	);
