@@ -235,6 +235,31 @@ function getIntersect(arr1, arr2) {
     }
     return r;
 }
+/* currently not supported by chromium:
+ * see this link for a possible future support:
+ * https://codereview.chromium.org/22085002/patch/1/1006
+ */
+/*
+function maptransitiontypes(transitiontype)
+{
+  var retval;
+  switch (transitiontype)
+  {
+    case 1://A link was followed
+      retval = "link";
+      break;
+    case 2://The URL was typed by the user
+      retval = "typed";
+      break;
+    case 3://Bookmark
+      retval = "bookmark";
+      break;
+    default:
+      retval = "link";//I hope that this  makes a  sensible default
+      break;
+  }
+  return retval;
+}*/
 
 Weave.Chromium.History = {
 
@@ -280,7 +305,7 @@ Weave.Chromium.History = {
     syncWBOs: function (data, callback) {
         var self = this;
 //data right now is the full complete history stored on the server.
-//	console.log(data);
+	console.log(data[0]);
 	
 	
         // With tabs it's easy.  We just replace whatever we have
@@ -297,10 +322,10 @@ Weave.Chromium.History = {
 	    function (chromiumhisto)
 	{
 	  //Let's find out which elements are duplicate in a simple O(N^2) manner
-	  //chromiumhisto stems from chromium and data stems from weave
-	  var missinginweave = [];
+	  //chromiumhisto is the history from chromium and data is the history received by weave from weave
+	  //two arrays since their internal representation is different
 	  var intersectweave = [];
-	  var intersectchromium = [];//two arrays since their internal representation is different
+	  var intersectchromium = [];
 	  for (var i = 0; i < chromiumhisto.length; ++i)
 	  {
 	    var found = false;
@@ -329,12 +354,15 @@ Weave.Chromium.History = {
 	  console.log(intersectchromium);
 	  //Now we merge stuff from weave that we miss in chromium
 	  //since we only have chrome.history.addurl which adds an url at the current time...
-/*works	  missinginchrome.forEach(function(element, index, array)
+	  missinginchrome.forEach(function(element, index, array)
 	  {
-	   chrome.history.addUrl({url: element.histUri}); 
-	  }*/
-	  //Now we need to prepare data for weave
+	   chrome.history.addUrl({
+	     url: element.histUri/*,
+	     transition: maptransitiontypes(element.visits[element.visits.length -1].type)*///doesn't work currently
+	  }); 
+	  }
 	  )
+//Now we need to prepare data for weave
 	}
 	  
 	);
